@@ -4,11 +4,12 @@
 
 module Lists where 
 import Language.Haskell.Liquid.ProofCombinators
-import Prelude hiding (length, (++), reverse, pred, (^))
+import Prelude hiding ((++), reverse, pred, (^))
 
 
 {-@ infix   ++ @-}
 {-@ reflect ++ @-}
+{-@ (++) :: forall <p :: a -> Bool>. [a<p>] -> [a<p>] -> [a<p>] @-} -- used for binomial queues
 (++) :: [a] -> [a] -> [a] 
 [] ++ ys = ys 
 (x:xs) ++ ys = x:(xs ++ ys)
@@ -31,14 +32,14 @@ app_assoc4 [] ys zs ws     = appendAssoc ys zs ws
 app_assoc4 (x:xs) ys zs ws = app_assoc4 xs ys zs ws
 
 
-{-@ measure length @-}
-{-@ length :: [a] -> Nat @-}
-length :: [a] -> Int 
-length [] = 0 
-length (x:xs) = 1 + length xs
+{-@ measure len @-}
+{-@ len :: [a] -> Nat @-}
+len :: [a] -> Int 
+len [] = 0 
+len (x:xs) = 1 + len xs
 
 
-{-@ app_length ::  xs:_ -> ys:_ -> { length (xs ++ ys) == length xs + length ys } @-}
+{-@ app_length ::  xs:_ -> ys:_ -> { len (xs ++ ys) == len xs + len ys } @-}
 app_length :: [a] -> [a] -> Proof
 app_length [] ys     = trivial
 app_length (x:xs) ys = app_length xs ys
@@ -47,7 +48,6 @@ app_length (x:xs) ys = app_length xs ys
 {-@ reflect reverse @-}
 reverse :: [a] -> [a]
 reverse [] = []
-reverse (x:xs) = reverse xs ++ [x]
 reverse (x:xs) = reverse xs ++ [x]
 
 
@@ -63,7 +63,7 @@ theorem_rev_rev [] = trivial
 theorem_rev_rev (x:xs)=[lemma_rev_app (reverse xs) ([x]), theorem_rev_rev xs] *** QED
 
 
-{-@ rev_length :: xs:_ ->{ length (reverse xs) == length xs } @-}
+{-@ rev_length :: xs:_ ->{ len (reverse xs) == len xs } @-}
 rev_length :: [a] -> Proof
 rev_length [] = trivial
 rev_length (x:xs)=[ app_length (reverse xs) [x], rev_length xs, app_length [x] xs ] *** QED
@@ -88,7 +88,7 @@ pred n
   | n == 0 = 0
   | otherwise = n-1
 
-
+{-@ reflect lHd @-}
 {-@ lHd :: (Ord a) => {v: [a] | len v > 0} -> a @-}
 lHd :: (Ord a) => [a] -> a
 lHd (x:_) =x
@@ -100,7 +100,7 @@ lTl [] = []
 lTl (_:xs) = xs
 
 
-{-@ tl_length_pred ::  xs:_ -> { pred (length xs) == length (lTl xs) } @-}
+{-@ tl_length_pred ::  xs:_ -> { pred (len xs) == len (lTl xs) } @-}
 tl_length_pred :: [a] -> Proof
 tl_length_pred []     = trivial
 tl_length_pred (x:xs) = tl_length_pred xs
@@ -118,3 +118,4 @@ beq_list (x:xs) (y:ys) = if (x==y) then (beq_list xs ys) else False
 beq_natlist_refl :: [Int]  -> Proof
 beq_natlist_refl []     = trivial
 beq_natlist_refl (x:xs) = beq_natlist_refl xs
+

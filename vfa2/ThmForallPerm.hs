@@ -40,13 +40,13 @@ elemToBagMember x []     = ()
 elemToBagMember x (y:ys) 
   | x == y
   =   B.get x (bag (y:ys)) 
-  ==. B.get x (B.put y (bag ys))
-  ==. 1 + B.get x (bag ys)
+  === B.get x (B.put y (bag ys))
+  === 1 + B.get x (bag ys)
   *** QED   
   | x /= y
   =   B.get x (bag (y:ys)) 
-  ==. B.get x (B.put y (bag ys))
-  ==. B.get x (bag ys)
+  === B.get x (B.put y (bag ys))
+  === B.get x (bag ys)
        ? elemToBagMember x ys 
   *** QED
 
@@ -85,14 +85,14 @@ elemForAll f x []
 elemForAll f y (x:xs)
   | y == x 
   =   forall2 f (x:xs) 
-  ==. (f x && forall2 f xs) 
-  ==. False 
+  === (f x && forall2 f xs) 
+  === False 
   *** QED  
   | otherwise
   =   forall2 f (x:xs)
-  ==. (f x && forall2 f xs)
+  === (f x && forall2 f xs)
       ? elemForAll f y xs 
-  ==. False 
+  === False 
   *** QED 
 
 

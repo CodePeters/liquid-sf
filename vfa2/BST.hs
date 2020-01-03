@@ -114,26 +114,26 @@ t_apply_empty x v1 = (lookup x (Bind x v1 Empty Empty) ) *** QED
 {-@ t_update_eq :: (Eq k, Ord k, Eq v) => t: (BST k v) -> x:k -> v1 :v -> { lookup x (insert x v1 t) = (Just v1) } @-}
 t_update_eq :: (Eq k, Ord k, Eq v) => (BST k v) -> k -> v -> Proof
 t_update_eq Empty x v1  =   lookup x (insert x v1 Empty)
-                        ==. lookup x (Bind x v1 Empty Empty) 
-                        ==. (Just v1) 
+                        === lookup x (Bind x v1 Empty Empty) 
+                        === (Just v1) 
                         *** QED
 
 t_update_eq (Bind k v l r) x v1 
       | k == x =   lookup x (insert x v1 (Bind k v l r))
-               ==. lookup x (Bind x v1 l r)
-               ==. Just v1
+               === lookup x (Bind x v1 l r)
+               === Just v1
                *** QED
 
       | k <  x =   lookup x (insert x v1 (Bind k v l r))
-               ==. lookup x ( Bind k v l (insert x v1 r))
-               ==. lookup x (insert x v1 r)
-               ==. (Just v1) ? t_update_eq r x v1 
+               === lookup x ( Bind k v l (insert x v1 r))
+               === lookup x (insert x v1 r) ? t_update_eq r x v1
+               === (Just v1)  
                *** QED
 
       | k > x =   lookup x (insert x v1 (Bind k v l r))
-              ==. lookup x ( Bind k v (insert x v1 l) r)
-              ==. lookup x (insert x v1 l)
-              ==. (Just v1) ? t_update_eq l x v1 
+              === lookup x ( Bind k v (insert x v1 l) r)
+              === lookup x (insert x v1 l) ? t_update_eq l x v1 
+              === (Just v1) 
               *** QED
 
 
@@ -143,54 +143,54 @@ t_update_eq (Bind k v l r) x v1
 t_update_neq :: (Eq k, Ord k, Eq v) => k -> k -> v -> (BST k v) -> Proof
 t_update_neq k1 k2 v2 Empty
   | k1 < k2             =   lookup k1 (insert k2 v2 Empty)
-                        ==. lookup k1 (Bind k2 v2 Empty Empty)
-                        ==. lookup k1 Empty
+                        === lookup k1 (Bind k2 v2 Empty Empty)
+                        === lookup k1 Empty
                         *** QED
 
   | otherwise           =   lookup k1 (insert k2 v2 Empty)
-                        ==. lookup k1 (Bind k2 v2 Empty Empty)
-                        ==. lookup k1 Empty
+                        === lookup k1 (Bind k2 v2 Empty Empty)
+                        === lookup k1 Empty
                         *** QED
 
 t_update_neq k1 k2 v2 (Bind k v l r)
   | k1 <  k, k <  k2    =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v l (insert k2 v2 r))
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v l (insert k2 v2 r))
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k == k2             =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v2 l r)
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v2 l r)
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k1 == k, k <  k2    =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v l (insert k2 v2 r))
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v l (insert k2 v2 r))
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k2 <  k, k == k1    =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v (insert k2 v2 l) r)
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v (insert k2 v2 l) r)
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k2 <  k, k <  k1    =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v (insert k2 v2 l) r)
-                        ==. lookup k1 r
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v (insert k2 v2 l) r)
+                        === lookup k1 r
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k1 < k, k2 < k      =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v (insert k2 v2 l) r)
-                        ==. lookup k1 (insert k2 v2 l)   ? t_update_neq k1 k2 v2 l
-                        ==. lookup k1 l
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v (insert k2 v2 l) r) ? t_update_neq k1 k2 v2 l
+                        === lookup k1 (insert k2 v2 l)   
+                        === lookup k1 l
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
   | k < k1, k < k2      =   lookup k1 (insert k2 v2 (Bind k v l r))
-                        ==. lookup k1 (Bind k v l (insert k2 v2 r))
-                        ==. lookup k1 (insert k2 v2 r)   ? t_update_neq k1 k2 v2 r
-                        ==. lookup k1 r
-                        ==. lookup k1 (Bind k v l r)
+                        === lookup k1 (Bind k v l (insert k2 v2 r)) ? t_update_neq k1 k2 v2 r
+                        === lookup k1 (insert k2 v2 r)   
+                        === lookup k1 r
+                        === lookup k1 (Bind k v l r)
                         *** QED
 
 
@@ -199,31 +199,31 @@ t_update_neq k1 k2 v2 (Bind k v l r)
 thm_same_tree ::  (Eq k, Ord k, Eq v) => (BST k v) -> v -> v -> k -> Proof    
 
 thm_same_tree Empty v1 v2 x =   (insert x v2 (insert x v1 Empty)) 
-                            ==. (insert x v2  (Bind x v1 Empty Empty))
-                            ==. (Bind x v2 Empty Empty)
-                            ==. (insert x v2 Empty)
+                            === (insert x v2  (Bind x v1 Empty Empty))
+                            === (Bind x v2 Empty Empty)
+                            === (insert x v2 Empty)
                             *** QED
 
 thm_same_tree (Bind x1 v l r) v1 v2 x 
 
       | x == x1 =  (insert x v2 (insert x v1 (Bind x v l r))) 
-                ==. (insert x v2  (Bind x v1 l r))
-                ==. (Bind x v2 l r)
-                ==. (insert x v2 (Bind x1 v l r))
+                === (insert x v2  (Bind x v1 l r))
+                === (Bind x v2 l r)
+                === (insert x v2 (Bind x1 v l r))
                 *** QED 
 
       | x < x1  =   (insert x v2 (insert x v1 (Bind x1 v l r))) 
-                ==. (insert x v2  (Bind x1 v (insert x v1 l) r))
-                ==. (Bind x1 v (insert x v2 (insert x v1 l)) r)
-                ==. (Bind x1 v (insert x v2 l) r)     ? thm_same_tree l v1 v2 x
-                ==. (insert x v2 (Bind x1 v l r))
+                === (insert x v2  (Bind x1 v (insert x v1 l) r))
+                === (Bind x1 v (insert x v2 (insert x v1 l)) r) ? thm_same_tree l v1 v2 x
+                === (Bind x1 v (insert x v2 l) r)     
+                === (insert x v2 (Bind x1 v l r))
                 *** QED 
                  
       | x > x1  =   (insert x v2 (insert x v1 (Bind x1 v l r))) 
-                ==. (insert x v2  (Bind x1 v l (insert x v1 r)))
-                ==. (Bind x1 v l (insert x v2 (insert x v1 r)))
-                ==. (Bind x1 v l (insert x v2 r))     ? thm_same_tree r v1 v2 x
-                ==. (insert x v2 (Bind x1 v l r))
+                === (insert x v2  (Bind x1 v l (insert x v1 r)))
+                === (Bind x1 v l (insert x v2 (insert x v1 r))) ? thm_same_tree r v1 v2 x
+                === (Bind x1 v l (insert x v2 r))     
+                === (insert x v2 (Bind x1 v l r))
                 *** QED 
 
 
@@ -248,34 +248,32 @@ t_update_same t x y = (t_update_same_aux t x)*** QED
   :: (Eq k, Ord k, Eq v) 
   => t:BST k v 
   -> x: {k | isJust (lookup x t) }  
-  ->  {(insert x (fromJust (lookup x t)) t) == t} @-}
+  ->  {(insert x (fromJust (lookup x t)) t) = t} @-}
 t_update_same_aux 
   :: (Eq k, Ord k, Eq v)
   => BST k v -> k -> Proof 
 t_update_same_aux (Bind k v l r) x 
   | x == k
   =   insert x (fromJust (lookup x (Bind x v l r))) (Bind x v l r)
-  ==. insert x (fromJust (Just v)) (Bind x v l r)
-  ==. insert x v (Bind x v l r)
-  ==. Bind x v l r
+  === insert x (fromJust (Just v)) (Bind x v l r)
+  === insert x v (Bind x v l r)
+  === Bind x v l r
   *** QED 
   | x < k
   =   insert x (fromJust (lookup x (Bind k v l r))) (Bind k v l r)
-  ==. insert x (fromJust (lookup x l)) (Bind k v l r)
-  ==. Bind k v (insert x (fromJust (lookup x l)) l) r
-       ? t_update_same_aux l x
-  ==. Bind k v l r  
+  === insert x (fromJust (lookup x l)) (Bind k v l r)
+  === Bind k v (insert x (fromJust (lookup x l)) l) r
+       ? t_update_same_aux l x 
   *** QED 
   | x > k  
   =   insert x (fromJust (lookup x (Bind k v l r))) (Bind k v l r)
-  ==. insert x (fromJust (lookup x r)) (Bind k v l r)
-  ==. Bind k v l (insert x (fromJust (lookup x r)) r)
-       ? t_update_same_aux r x
-  ==. Bind k v l r  
+  === insert x (fromJust (lookup x r)) (Bind k v l r)
+  === Bind k v l (insert x (fromJust (lookup x r)) r)
+       ? t_update_same_aux r x 
   *** QED 
 t_update_same_aux Empty x 
   =   isJust (lookup x Empty) 
-  ==. isJust Nothing
+  === isJust Nothing
   *** QED 
 
 

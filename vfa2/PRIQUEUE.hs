@@ -177,11 +177,10 @@ thm_perm1 :: (Eq a, Ord a) => [a] -> Proof
 thm_perm1 [] 
   = ()  
 thm_perm1 (x:xs) 
-  =   permutation xs [] 
-  ==. bag xs == bag []
-  ==. B.put x (bag xs) == B.empty 
-       ? B.thm_emp x (bag xs)
-  ==. False 
+  =   (permutation xs [] 
+  , bag xs == bag []
+  ,B.put x (bag xs) == B.empty 
+       , B.thm_emp x (bag xs) )
   *** QED 
 
 

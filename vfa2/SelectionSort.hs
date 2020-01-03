@@ -6,9 +6,11 @@
 
 
 module SSort where
-import Language.Haskell.Liquid.Bag	
+import qualified Language.Haskell.Liquid.Bag as B
+import qualified Data.Set as S 
 import Language.Haskell.Liquid.ProofCombinators
 import Permutations
+import ThmForallPerm
 
 
 
@@ -41,18 +43,16 @@ thm_perm x xs y ys i = trivial
 thm_select_perm:: (Ord a) => a -> [a]  -> Proof  
 thm_select_perm x []                  =   trivial
 thm_select_perm x (l:ls)  | x <= l    =   permutation (x:(l:ls)) ((fst1 (select x (l:ls))) : (snd1 (select x (l:ls))))
-                                       ==. permutation (x:(l:ls)) ((fst1 (select x ls)) : (l:(snd1 (select x ls))) )
-                                       ==. True ? thm_select_perm x ls  &&& thm_perm x (fst1 (select x ls)) ls (snd1 (select x ls)) l
-                                       *** QED 
+                                      === permutation (x:(l:ls)) ((fst1 (select x ls)) : (l:(snd1 (select x ls))) ) 
+                                        ? thm_select_perm x ls  &&& thm_perm x (fst1 (select x ls)) ls (snd1 (select x ls)) l
+                                      === True 
+                                      *** QED 
 thm_select_perm x (l:ls)  | x > l     =   permutation (x:(l:ls)) ((fst1 (select x (l:ls))) : (snd1 (select x (l:ls))))
-                                       ==. permutation (x:(l:ls)) ((fst1 (select l ls)) : (x:(snd1 (select l ls))) )
-                                       ==. True ? thm_select_perm l ls  &&& thm_perm l (fst1 (select l ls)) ls (snd1 (select l ls)) x
+                                      === permutation (x:(l:ls)) ((fst1 (select l ls)) : (x:(snd1 (select l ls))) )
+                                        ? thm_select_perm l ls  &&& thm_perm l (fst1 (select l ls)) ls (snd1 (select l ls)) x
+                                      === True 
                                        *** QED 
 
-{-@ reflect forall2 @-}
-forall2 :: (a->Bool) -> [a] -> Bool
-forall2 f []     = True
-forall2 f (x:xs) = (f x) && (forall2 f xs)
 
 {-@ reflect selSort @-}
 {-@ selSort :: (Ord a) => xs:[a]  -> ys:[a]  @-}
@@ -79,10 +79,11 @@ thm_perm_aux xs ys zs = trivial
 thm_selsort_perm:: (Ord a) => [a]  -> Proof
 thm_selsort_perm []     = trivial
 thm_selsort_perm (x:xs) =   permutation   (x:xs) (selSort (x:xs))
-                        ==. permutation (x:xs) ((fst1 (select x xs)):selSort (snd1 (select x xs))) 
-                        ==. permutation ((fst1 (select x xs)) : (snd1 (select x xs))) ((fst1 (select x xs)):selSort (snd1 (select x xs)))
-                            ? thm_select_perm x xs &&& thm_perm_aux (x:xs) ((fst1 (select x xs)) : (snd1 (select x xs))) ((fst1 (select x xs)):selSort (snd1 (select x xs))) 
-                        ==. True ? thm_selsort_perm  (snd1 (select x xs))
+                        === permutation (x:xs) ((fst1 (select x xs)):selSort (snd1 (select x xs))) 
+                          ? thm_select_perm x xs &&& thm_perm_aux (x:xs) ((fst1 (select x xs)) : (snd1 (select x xs))) ((fst1 (select x xs)):selSort (snd1 (select x xs))) 
+                        === permutation ((fst1 (select x xs)) : (snd1 (select x xs))) ((fst1 (select x xs)):selSort (snd1 (select x xs)))
+                          ? thm_selsort_perm  (snd1 (select x xs))
+                        === True 
                         *** QED
 
 
@@ -118,19 +119,15 @@ selection_sort_sorted_aux bl y = (sorted (selSort bl), forall2 (all_greater_eq y
 selection_sort_sorted :: (Ord a) => [a]  -> Proof
 selection_sort_sorted []  = trivial
 selection_sort_sorted (h:t) =   sorted (selSort (h:t))
-                            ==. sorted ( ( (fst1 (select h t) ) :selSort (snd1 (select h t) ) ) )
-                            ==. True  ? selection_sort_sorted (snd1 (select h t)) &&& (thm_select_smallest h t) &&& selection_sort_sorted_aux (snd1 (select h t)) (fst1 (select h t))
+                            === sorted ( ( (fst1 (select h t) ) :selSort (snd1 (select h t) ) ) )
+                              ? selection_sort_sorted (snd1 (select h t)) &&& (thm_select_smallest h t) &&& selection_sort_sorted_aux (snd1 (select h t)) (fst1 (select h t))
+                            === True  
                             *** QED
    
 {-@ thm_smallest_aux :: xs:[a] -> x:a -> { forall2 (all_greater_eq x) (x:xs) <=> forall2 (all_greater_eq x) xs } @-}
 thm_smallest_aux :: [a] -> a -> Proof
 thm_smallest_aux xs x = trivial
 
-{-@ thm_Forall_perm :: f: (a -> Bool) -> al: [a] 
-  -> bl: {[a] | permutation al bl} -> {  forall2 f al = forall2 f bl  } @-}
-thm_Forall_perm :: Ord a => (a -> Bool) -> [a] -> [a] -> Proof
-
-thm_Forall_perm f xs ys = undefined
 
 {-@ thm_smallest_aux2 :: (Ord a) =>  x:a -> y:a ->  al: { [a] | forall2 (all_greater_eq y) (x:al) } -> {y<= x}  @-}
 thm_smallest_aux2 :: (Ord a) => a -> a -> [a] -> Proof
@@ -147,13 +144,13 @@ select_smallest_aux x al = ( thm_select_perm x al , thm_smallest_aux  ((fst1 (se
 {-@ thm_select_smallest :: (Ord a) => x:a -> xs:[a] ->  { forall2 (all_greater_eq (fst1 (select x xs))) (snd1 (select x xs)) } / [len xs] @-}
 thm_select_smallest  :: (Ord a) => a -> [a] -> Proof
 thm_select_smallest k [] = trivial
-thm_select_smallest k (x:xs) | k <= x =   forall2 (all_greater_eq (fst1 (select x xs))) (snd1 (select x xs))
-                                      ==. forall2 (all_greater_eq (fst1 (select k xs))) (x:snd1 (select k xs))
-                                      ==. True ?  thm_select_smallest k xs &&& select_smallest_aux k xs
+thm_select_smallest k (x:xs) | k <= x =   forall2 (all_greater_eq (fst1 (select k (x:xs)))) (snd1 (select k (x:xs)))
+                                      ===forall2 (all_greater_eq (fst1 (select k xs))) (x:snd1 (select k xs))
+                                           ? thm_select_smallest k xs &&& select_smallest_aux k xs      
                                       *** QED
 
-thm_select_smallest k (x:xs) | k > x = forall2 (all_greater_eq (fst1 (select x xs))) (snd1 (select x xs))
-                                      ==. forall2 (all_greater_eq (fst1 (select x xs))) (k:snd1 (select x xs))
-                                      ==. True ?  thm_select_smallest x xs &&& select_smallest_aux x xs
-                                      *** QED
+thm_select_smallest k (x:xs) | k > x =   forall2 (all_greater_eq (fst1 (select k (x:xs)))) (snd1 (select k (x:xs)))
+                                     === forall2 (all_greater_eq (fst1 (select x xs))) (k:snd1 (select x xs))
+                                      ?  thm_select_smallest x xs &&& select_smallest_aux x xs
+                                     *** QED
     
